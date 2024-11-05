@@ -4,7 +4,7 @@ const WebSocket = require("ws");
 const { v4: uuidv4 } = require("uuid");
 
 const PORT = process.env.PORT || 6784; // ascii for CT (C=67,T=84)
-const CLIENT_SECRET = process.env.CLIENT_SECRET || "your-client-secret";
+const CLIENT_SECRET = process.env.CHAT_TOY_CLIENT_SECRET || "your-client-secret";
 
 const app = express();
 app.use(bodyParser.json());
