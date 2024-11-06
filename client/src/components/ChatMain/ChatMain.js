@@ -25,6 +25,7 @@ function ChatMain({ serviceUrl, server, channel }) {
     socket.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
+        console.log("Message received:"+message)
         if (message.channelID === channel) {
           setMessages((prevMessages) => [...prevMessages, message]);
         }

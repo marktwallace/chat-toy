@@ -37,12 +37,11 @@ flyctl deploy
 
 ### Test with curl
 ```
-% curl -X GET https://chat-toy.fly.dev/servers -H "Authorization: Bearer $CHAT_TOY_CLIENT_SECRET"
-{}
+% curl -H "Authorization: Bearer $CHAT_TOY_CLIENT_SECRET" -H "Content-Type: application/json" -X POST -d '{"name": "test"}' https://chat-toy.fly.dev/channel
 
-% curl -H "Authorization: Bearer $CHAT_TOY_CLIENT_SECRET" -H "Content-Type: application/json" -X POST -d '{"name": "test"}' https://chat-toy.fly.dev/server
-{"serverID":"870543f1-afc1-438a-9cf4-1057d67ca5dc","name":"test","channels":[]}
+{"name":"test","messages":[],"users":[]}
 
-% curl -X GET https://chat-toy.fly.dev/servers -H "Authorization: Bearer $CHAT_TOY_CLIENT_SECRET"
-{"870543f1-afc1-438a-9cf4-1057d67ca5dc":{"serverID":"870543f1-afc1-438a-9cf4-1057d67ca5dc","name":"test","channels":[]}}
+% curl -X GET https://chat-toy.fly.dev/channels -H "Authorization: Bearer $CHAT_TOY_CLIENT_SECRET"
+
+[{"name":"test","messages":[],"users":[]}]
 ```
