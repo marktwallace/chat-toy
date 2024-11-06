@@ -1,16 +1,22 @@
 import React, { useEffect, useState } from "react";
 import MessageInput from "../MessageInput/MessageInput";
 import MessageScrollSection from "../MessageScrollSection/MessageScrollSection";
+import Modal from "../Modal/Modal";
 
 function ChatMain({ serviceUrl, server, channel }) {
   const [messages, setMessages] = useState([]);
   const [ws, setWs] = useState(null);
+  const [userName, setUserName] = useState("");
+  const [modalUserName, setModalUserName] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(true);
 
   const clientSecret = process.env.CHAT_TOY_CLIENT_SECRET;
 
   useEffect(() => {
+    if (!userName) return;
+
     // Connect to the WebSocket server
-    const socket = new WebSocket(`${serviceUrl.replace(/^http/, 'ws')}/`);
+    const socket = new WebSocket(`${serviceUrl.replace(/^http/, "ws")}/`);
     setWs(socket);
 
     socket.onopen = () => {
@@ -28,7 +34,8 @@ function ChatMain({ serviceUrl, server, channel }) {
       try {
         const message = JSON.parse(event.data);
         console.log("Message received:", message);
-        if (message.channelName === channel) { // Use channelName to match server expectations
+        if (message.channelName === channel) {
+          // Use channelName to match server expectations
           setMessages((prevMessages) => [...prevMessages, message]);
         }
       } catch (error) {
@@ -48,7 +55,7 @@ function ChatMain({ serviceUrl, server, channel }) {
     return () => {
       socket.close();
     };
-  }, [serviceUrl, channel]);
+  }, [serviceUrl, channel, userName]);
 
   const handleSendMessage = async (content) => {
     if (!ws) {
@@ -57,7 +64,7 @@ function ChatMain({ serviceUrl, server, channel }) {
     }
 
     const messagePayload = {
-      userID: "your-user-id", // You would replace this with the actual user ID
+      userID: userName, // Use userName as the user ID
       content,
     };
 
@@ -77,10 +84,37 @@ function ChatMain({ serviceUrl, server, channel }) {
     }
   };
 
+  const handleModalSubmit = () => {
+    if (modalUserName.trim()) {
+      setUserName(modalUserName);
+      setIsModalOpen(false);
+    }
+  };
+
   return (
     <main className="chat-main">
-      <MessageScrollSection messages={messages} />
-      <MessageInput onClick={(content) => handleSendMessage(content)} />
+      {isModalOpen && (
+        <Modal>
+          <div className="modal-content">
+            <input
+              type="text"
+              placeholder="Enter your username"
+              value={modalUserName}
+              onChange={(e) => setModalUserName(e.target.value)}
+              className="username-input"
+            />
+            <button className="message-submit" onClick={handleModalSubmit}>
+              Join Chat
+            </button>
+          </div>
+        </Modal>
+      )}
+      {!isModalOpen && (
+        <>
+          <MessageScrollSection messages={messages} />
+          <MessageInput onClick={(content) => handleSendMessage(content)} />
+        </>
+      )}
     </main>
   );
 }
