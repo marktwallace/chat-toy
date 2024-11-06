@@ -10,14 +10,15 @@ function MessageScrollSection({ messages }) {
     }, [messages]);
 
     return (
-        <div ref={scrollRef} className="message-scroll-section">
-            {messages.map((msg, index) => (
-                <div key={index} >
-                    <pre style={{ margin: 0 }}>{msg.content}</pre>
-                </div>
-            ))}
-        </div>
-    );
+      <div ref={scrollRef} className="message-scroll-section">
+          {messages.map((msg, index) => (
+              <div key={index} style={{ display: 'flex', alignItems: 'center' }}>
+                  <span style={{ fontWeight: 'bold', marginRight: '5px' }}>{msg.userID}:</span>
+                  <span>{msg.content}</span>
+              </div>
+          ))}
+      </div>
+  );  
 }
 
 export default MessageScrollSection;

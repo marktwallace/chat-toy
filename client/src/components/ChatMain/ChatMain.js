@@ -78,7 +78,7 @@ function ChatMain({ serviceUrl, server, channel }) {
   };
 
   return (
-    <main>
+    <main className="chat-main">
       <MessageScrollSection messages={messages} />
       <MessageInput onClick={(content) => handleSendMessage(content)} />
     </main>

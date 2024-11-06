@@ -95,7 +95,7 @@ h1 {
     padding-right: 16px;
 }
 
-.flex-form {
+.message-input {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -103,13 +103,14 @@ h1 {
 }
 
 .input-field {
+  flex: 1 1 300px;
   padding: 10px;
   font-size: 1rem;
   border: 1px solid #ccc;
   border-radius: 5px;
 }
 
-.button-submit {
+.message-submit {
   padding: 10px 20px;
   font-size: 1rem;
   font-weight: bold;
@@ -118,4 +119,29 @@ h1 {
   border: none;
   border-radius: 5px;
   cursor: pointer;
+}
+
+.chat-main {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+  overflow: hidden;
+}
+
+.message-scroll-section {
+  flex-grow: 1;
+  width: 100%;
+  border: 1px solid #ccc;
+  padding: 10px;
+  overflow-y: auto;
+  height: calc(100vh - 250px); /* Adjust height to fit window */
+  font-size: 1rem;
+  line-height: 1.5;
+  background-color: #f9f9f9;
+  margin-bottom: 10px;
 }

@@ -18,9 +18,8 @@ function MessageInput({ onClick }) {
 
     return (
         <form className="message-input" onSubmit={handleSubmit}>
-            <textarea
+            <input
                 className="input-field"
-                placeholder="Type something..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown} // Listen for Enter key
