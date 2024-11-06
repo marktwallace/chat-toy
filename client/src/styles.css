@@ -1,0 +1,121 @@
+html {
+  overflow-y: scroll;
+}
+
+body {
+  font-family: sans-serif;
+}
+
+button {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  color: inherit;
+}
+
+header {
+  display: flex;
+  height: var(--header-height);
+  border-bottom: 1px solid var(--color-gray-700);
+  color: var(--color-gray-300);
+}
+
+header .side {
+  width: var(--header-height);
+  display: grid;
+  place-content: center;
+}
+
+h1 {
+  flex: 1;
+  font-size: 2rem;
+  line-height: var(--header-height);
+  text-align: center;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
+  max-width: 300px;
+  text-align: center;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 16px;
+  cursor: pointer;
+}
+
+.modal-title {
+  margin-bottom: 0.5em;
+}
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* flex-end, space-between… */
+  align-items: stretch; /* flex-end, baseline… */  
+  min-height: 100svh; /* Ensure wrapper takes full viewport height */
+  /* svh (small vertical height) avoids problems on some mobile devices */
+  min-height: 100%;
+}
+
+/* Use on a div to get centered text */
+/* example, change as needed */
+.max-width-wrapper {
+    max-width: 350px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+.flex-form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px;
+}
+
+.input-field {
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.button-submit {
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: bold;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}

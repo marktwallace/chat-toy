@@ -1,7 +1,6 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const WebSocket = require("ws");
-const { v4: uuidv4 } = require("uuid");
 
 const PORT = process.env.PORT || 6784; // ascii for CT (C=67,T=84)
 const CLIENT_SECRET = process.env.CHAT_TOY_CLIENT_SECRET || "your-client-secret";
@@ -11,10 +10,7 @@ app.use(bodyParser.json());
 
 const wss = new WebSocket.Server({ noServer: true });
 
-const servers = {};
 const channels = {};
-const messages = {};
-const users = {};
 
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl}`);
@@ -33,9 +29,9 @@ function authenticate(req, res, next) {
 }
 
 /*
-curl -H "Authorization: Bearer your-client-secret" -H "Content-Type: application/json" -X POST -d '{"name": "test"}' http://localhost:6784/server
+curl -H "Authorization: Bearer your-client-secret" -H "Content-Type: application/json" -X POST -d '{"name": "test"}' http://localhost:6784/channel
 */
-app.post("/server", authenticate, (req, res) => {
+app.post("/channel", authenticate, (req, res) => {
   const { name, description } = req.body;
 
   const namePattern = /^[A-Za-z][A-Za-z0-9]*$/;
@@ -45,85 +41,60 @@ app.post("/server", authenticate, (req, res) => {
     });
   }
 
-  const serverID = uuidv4();
-  servers[serverID] = { serverID, name, description, channels: [] };
-  res.json(servers[serverID]);
+  if (channels[name]) {
+    return res.status(400).json({ error: "Channel already exists" });
+  }
+
+  channels[name] = { name, description, messages: [], users: [] };
+  res.json(channels[name]);
 });
 
 /*
 Test with:
-curl -X GET http://localhost:6784/servers -H "Authorization: Bearer your-client-secret"
+curl -X GET http://localhost:6784/channels -H "Authorization: Bearer your-client-secret"
 */
-app.get("/servers", authenticate, (req, res) => {
-  res.json(servers);
+app.get("/channels", authenticate, (req, res) => {
+  res.json(Object.values(channels));
 });
 
-app.post("/server/:serverID/channel", authenticate, (req, res) => {
-  const { serverID } = req.params;
-  if (!servers[serverID])
-    return res.status(404).json({ error: "Server not found" });
-
-  const { name, description } = req.body;
-  const channelID = uuidv4();
-  const channel = { channelID, name, description, messages: [], users: [] };
-  channels[channelID] = channel;
-  servers[serverID].channels.push(channel);
-  res.json(channel);
-});
-
-app.get("/server/:serverID/channels", authenticate, (req, res) => {
-  const { serverID } = req.params;
-  if (!servers[serverID])
-    return res.status(404).json({ error: "Server not found" });
-  res.json(servers[serverID].channels);
-});
-
-app.get("/channel/:channelID/messages", authenticate, (req, res) => {
-  const { channelID } = req.params;
-  if (!channels[channelID])
+app.get("/channel/:channelName/messages", authenticate, (req, res) => {
+  const { channelName } = req.params;
+  if (!channels[channelName])
     return res.status(404).json({ error: "Channel not found" });
-  res.json(channels[channelID].messages);
+  res.json(channels[channelName].messages);
 });
 
-app.post("/channel/:channelID/message", authenticate, (req, res) => {
-  const { channelID } = req.params;
-  if (!channels[channelID])
+app.post("/channel/:channelName/message", authenticate, (req, res) => {
+  const { channelName } = req.params;
+  if (!channels[channelName])
     return res.status(404).json({ error: "Channel not found" });
 
   const { userID, content } = req.body;
-  const messageID = uuidv4();
   const timestamp = new Date().toISOString();
-  const message = { messageID, userID, content, timestamp };
-  channels[channelID].messages.push(message);
+  const message = { userID, content, timestamp };
+  channels[channelName].messages.push(message);
 
   // Broadcast message to subscribed clients
   wss.clients.forEach((client) => {
     if (
       client.readyState === WebSocket.OPEN &&
-      client.subscribedChannel === channelID
+      client.subscribedChannel === channelName
     ) {
-      client.send(JSON.stringify({ channelID, ...message }));
+      client.send(JSON.stringify({ channelName, ...message }));
     }
   });
 
   res.json(message);
 });
 
-app.get("/channel/:channelID/users", authenticate, (req, res) => {
-  const { channelID } = req.params;
-  if (!channels[channelID])
-    return res.status(404).json({ error: "Channel not found" });
-  res.json(channels[channelID].users);
-});
-
 // WebSocket handling
 wss.on("connection", (ws) => {
   ws.on("message", (message) => {
     try {
-      const { action, channelID } = JSON.parse(message);
-      if (action === "subscribe" && channels[channelID]) {
-        ws.subscribedChannel = channelID;
-        ws.send(JSON.stringify({ status: "subscribed", channelID }));
+      const { action, channelName } = JSON.parse(message);
+      if (action === "subscribe" && channels[channelName]) {
+        ws.subscribedChannel = channelName;
+        ws.send(JSON.stringify({ status: "subscribed", channelName }));
       }
     } catch (error) {
       ws.send(JSON.stringify({ error: "Invalid message format" }));

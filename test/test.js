@@ -3,6 +3,9 @@ Run with:
 
 node test.js --url=http://localhost:6784 --message="Hello from client 1" --resend
 
+or
+
+node test.js --url=https://chat-toy.fly.dev --message="Hello from client 1" --resend
 */
 
 const WebSocket = require('ws');
@@ -10,14 +13,12 @@ const WebSocket = require('ws');
 const url = process.argv.find(arg => arg.startsWith('--url=')).split('=')[1];
 const resend = process.argv.includes('--resend');
 const messageContent = process.argv.find(arg => arg.startsWith('--message='))?.split('=')[1] || "Testing, 1, 2, 3...";
-const CLIENT_SECRET = 'your-client-secret';
+const CLIENT_SECRET = process.env.CHAT_TOY_CLIENT_SECRET;
 
 const headers = {
   'Authorization': `Bearer ${CLIENT_SECRET}`,
   'Content-Type': 'application/json'
 };
-
-let serverID, channelID;
 
 async function makeRequest(endpoint, method = 'GET', body) {
   const fullUrl = `${url.replace(/\/+$/, '')}/${endpoint.replace(/^\/+/, '')}`;
@@ -35,39 +36,22 @@ async function makeRequest(endpoint, method = 'GET', body) {
 
 async function runTestClient() {
   try {
-    // Step 1: Find or create the server
-    const servers = await makeRequest('/servers', 'GET');
-    const server_arr = Object.values(servers);
-    console.log(server_arr);
-    let server = server_arr.find(s => s.name === 'test');
-    if (!server) {
-      server = await makeRequest('/server', 'POST', {
-        name: 'test',
-        description: 'Test Server'
-      });
-      console.log(`Created server with ID: ${server.serverID}`);
-    } else {
-      console.log(`Found existing server with ID: ${server.serverID}`);
-    }
-    serverID = server.serverID;
-
-    // Step 2: Find or create the channel in the server
-    const channels = await makeRequest(`/server/${serverID}/channels`, 'GET');
+    // Step 1: Find or create the channel
+    const channels = await makeRequest('/channels', 'GET');
     let channel = channels.find(c => c.name === 'test');
     if (!channel) {
-      channel = await makeRequest(`/server/${serverID}/channel`, 'POST', {
+      channel = await makeRequest('/channel', 'POST', {
         name: 'test',
         description: 'Test Channel'
       });
-      console.log(`Created channel with ID: ${channel.channelID}`);
+      console.log(`Created channel with name: ${channel.name}`);
     } else {
-      console.log(`Found existing channel with ID: ${channel.channelID}`);
+      console.log(`Found existing channel with name: ${channel.name}`);
     }
-    channelID = channel.channelID;
 
-    // Step 3: Send a message to the channel
+    // Step 2: Send a message to the channel
     const sendMessage = async () => {
-      const messageData = await makeRequest(`/channel/${channelID}/message`, 'POST', {
+      const messageData = await makeRequest(`/channel/${channel.name}/message`, 'POST', {
         userID: 'testUser',
         content: messageContent
       });
@@ -76,19 +60,19 @@ async function runTestClient() {
 
     await sendMessage();
 
-    // Step 4: Optionally resend the message every 10 seconds
+    // Step 3: Optionally resend the message every 10 seconds
     if (resend) {
       setInterval(async () => {
         await sendMessage();
       }, 10000);
     }
 
-    // Step 5: Connect to WebSocket for async notifications
+    // Step 4: Connect to WebSocket for async notifications
     const ws = new WebSocket(`${url.replace(/^http/, 'ws')}`);
 
     ws.on('open', () => {
       console.log('WebSocket connected');
-      ws.send(JSON.stringify({ action: 'subscribe', channelID }));
+      ws.send(JSON.stringify({ action: 'subscribe', channelName: channel.name }));
     });
 
     ws.on('message', (data) => {
