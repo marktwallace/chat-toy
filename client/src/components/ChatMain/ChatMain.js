@@ -6,6 +6,8 @@ function ChatMain({ serviceUrl, server, channel }) {
   const [messages, setMessages] = useState([]);
   const [ws, setWs] = useState(null);
 
+  const clientSecret = process.env.CHAT_TOY_CLIENT_SECRET;
+
   useEffect(() => {
     // Connect to the WebSocket server
     const socket = new WebSocket(`${serviceUrl.replace(/^http/, 'ws')}/`);
@@ -17,7 +19,7 @@ function ChatMain({ serviceUrl, server, channel }) {
       socket.send(
         JSON.stringify({
           action: "subscribe",
-          channelID: channel,
+          channelName: channel, // Use channelName instead of channelID to match server expectations
         })
       );
     };
@@ -25,8 +27,8 @@ function ChatMain({ serviceUrl, server, channel }) {
     socket.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
-        console.log("Message received:"+message)
-        if (message.channelID === channel) {
+        console.log("Message received:", message);
+        if (message.channelName === channel) { // Use channelName to match server expectations
           setMessages((prevMessages) => [...prevMessages, message]);
         }
       } catch (error) {
@@ -64,7 +66,7 @@ function ChatMain({ serviceUrl, server, channel }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer your-client-secret`,
+          Authorization: `Bearer ${clientSecret}`,
         },
         body: JSON.stringify(messagePayload),
       });
